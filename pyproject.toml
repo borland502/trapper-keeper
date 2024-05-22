@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "trapper-keeper"
+version = "0.1.0"
+description = ""
+authors = ["Jeremy Hettenhouser <jhettenh@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "trapper_keeper" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pykeepass = "^4.0.7.post1"
+xdg-base-dirs = "^6.0.1"
+pydantic = "^2.7.1"
+
+[tool.poetry.group.dev.dependencies]
+setuptools = "^70.0.0"
+pytest = "^8.2.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
