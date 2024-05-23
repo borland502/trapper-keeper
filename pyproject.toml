@@ -5,7 +5,7 @@ description = ""
 authors = ["Jeremy Hettenhouser <jhettenh@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "trapper_keeper", from = "trapper_keeper" }
+    { include = "trapper_keeper" }
 ]
 
 [tool.ruff]
