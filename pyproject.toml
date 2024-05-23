@@ -1,12 +1,99 @@
 [tool.poetry]
 name = "trapper-keeper"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Jeremy Hettenhouser <jhettenh@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "trapper_keeper" }
+    { include = "trapper_keeper", from = "trapper_keeper" }
 ]
+
+[tool.ruff]
+    indent-width = 2
+    line-length = 128
+    target-version = "py311"
+
+    exclude = [
+        ".eggs",
+        ".git",
+        ".ipynb_checkpoints",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".pytype",
+        ".ruff_cache",
+        ".venv",
+        "tests",
+        "__pypackages__",
+        "__pycache__",
+        "build",
+        "dist",
+    ]
+
+    lint.ignore = [
+        "D203",
+        "D213",
+        "E501",
+        "PGH003",
+        "RET504",
+        "S101",
+        "S307",
+        "D205",
+        "ISC001",
+        "E111",
+    ]
+    lint.ignore-init-module-imports = true
+    lint.select = [
+        "A",
+        "ASYNC",
+        "B",
+        "C4",
+        "C90",
+        "D",
+        "DTZ",
+        "E",
+        "F",
+        "FLY",
+        "I",
+        "ISC",
+        "LOG",
+        "N",
+        "NPY",
+        "PERF",
+        "PGH",
+        "PIE",
+        "PL",
+        "PT",
+        "Q",
+        "RET",
+        "RUF",
+        "RSE",
+        "SIM",
+        "TID",
+        "UP",
+        "W",
+        "YTT",
+    ]
+    lint.unfixable = ["F401", "F841"]
+
+[tool.ruff.format]
+    line-ending = "lf"
+
+
+[tool.ruff.lint.pydocstyle]
+    convention = "google"
+
+[tool.ruff.lint.isort]
+    section-order = [
+        "future",
+        "standard-library",
+        "third-party",
+        "first-party",
+        "tests",
+        "local-folder",
+    ]
+
+[tool.ruff.lint.isort.sections]
+    "tests" = ["tests"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
