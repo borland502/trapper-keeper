@@ -1,13 +1,12 @@
 [tool.poetry]
-name = "trapper-keeper"
-version = "0.2.0"
-description = ""
+name = "trapper_keeper"
+version = "0.2.1"
+description = "Python wrapper around KeePassXC to store and retrieve secrets"
 authors = ["Jeremy Hettenhouser <jhettenh@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "trapper_keeper" }
+    { include = "*", from = "src" },
 ]
-
 [tool.ruff]
     indent-width = 2
     line-length = 128
@@ -93,7 +92,7 @@ packages = [
     ]
 
 [tool.ruff.lint.isort.sections]
-    "tests" = ["tests"]
+    "tests" = ["src","tests"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -104,6 +103,7 @@ pydantic = "^2.7.1"
 [tool.poetry.group.dev.dependencies]
 setuptools = "^70.0.0"
 pytest = "^8.2.1"
+ruff = "^0.4.5"
 
 [build-system]
 requires = ["poetry-core"]
