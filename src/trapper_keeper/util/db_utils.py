@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from boltdb import BoltDB
 from pykeepass.attachment import Attachment
 from pykeepass.group import Entry, Group
 from pykeepass.pykeepass import create_database, PyKeePass
@@ -15,8 +16,8 @@ from trapper_keeper.sqlite_kvstore import KeyValueStore
 PROPERTIES_IDX: int = 0
 KV_STORE: Path = Path(xdg_cache_home(), "trapper_keeper/kv_store.sqlite")
 KEEPASS_DB_PATH: Path = Path.joinpath(xdg_data_home(), "trapper_keeper/secrets.kdbx")
-KEEPASS_DB_KEY: Path = Path.joinpath(xdg_config_home(), "trapper_keeper/key.txt")
-KEEPASS_DB_TOKEN: Path = Path.joinpath(xdg_state_home(), "trapper_keeper/keepass_token")
+KEEPASS_DB_KEY: Path = Path.joinpath(xdg_config_home(), "trapper_keeper/secrets.keyx")
+KEEPASS_DB_TOKEN: Path = Path.joinpath(xdg_state_home(), "trapper_keeper/secrets_token")
 
 SPECIAL_BINARIES: str = "2b405bc0-8583-491c-a4af-81628388f2c4"
 
@@ -27,13 +28,10 @@ class DbTypes(Enum):
   SQLITE: str = "Sqlite"
 
 
-class AttachmentNames(Enum):
-  KV_STORE: str = ""
-
 class DbUtils:
 
   @classmethod
-  def create_tk_store(cls, kp_fp: Path, kp_token: Path, kp_key: Path | None = None, kv_fp: Path | None = None) -> None:
+  def create_tk_store(cls, kp_fp: Path, kp_token: Path, kp_key: Path, kv_fp: Path | None = None) -> None:
     kp_db: PyKeePass = cls._create_kp_db(kp_fp=kp_fp, kp_token=kp_token, kp_key=kp_key)
     group: Group = cls._create_group(kp_db)
     cls._create_kv_store(kp_db, group, kv_fp)
@@ -41,7 +39,7 @@ class DbUtils:
     # TODO: Validation on creation
 
   @classmethod
-  def pack_tk_store(cls, kp_fp: Path, kp_token: Path, kp_key: Path | None = None, kv_fp: Path | None = None):
+  def pack_tk_store(cls, kp_fp: Path, kp_token: Path, kp_key: Path, kv_fp: Path | None = None):
     with PyKeePass(filename=kp_fp, password=kp_token, keyfile=kp_key) as kp_db:
       binary_entry: Entry = kp_db.find_entries(title="Properties", first=True)
       properties_attachment: Attachment = binary_entry.attachments[PROPERTIES_IDX]
@@ -110,3 +108,8 @@ class DbUtils:
 
     kp_db.save()
     return kv_db
+
+  @staticmethod
+  def load_boltdb_store(bp_fp: Path) -> BoltDB:
+    bolt_db = BoltDB(filename=bp_fp, readonly=True)
+    return bolt_db
