@@ -33,6 +33,15 @@ class TestGenAuth(unittest.TestCase):
     with open(self.kp_token, encoding="utf-8", mode="r", newline="\n") as f:
       self.assertEqual(first=f.read(), second=self.kee_auth.kp_token)
 
+  def test_existing_secrets(self):
+    kee_auth: KeeAuth = Keegen.gen_auth(kp_key=self.kp_key, kp_token=self.kp_token)
+
+    with open(self.kp_key, encoding="utf-8", mode="r") as f:
+      self.assertEqual(first=f.read(), second=kee_auth.kp_key)
+
+    with open(self.kp_token, encoding="utf-8", mode="r") as f:
+      self.assertEqual(first=f.read(), second=kee_auth.kp_token)
+
   def tearDown(self):
     dir_folder:Path = self.kp_key.parent
     self.kp_key.unlink(missing_ok=True)

@@ -15,13 +15,16 @@ class Keegen():
   @classmethod
   def gen_auth(cls, kp_token: Path | None = None, kp_key: Path | None = None):
     key_auth: KeeAuth = KeeAuth()
-    key_auth.kp_token = ''.join(random.choices(string.printable, k=cls.TOKEN_SIZE)).strip("\n").strip("\r")
-    key_auth.kp_key = ''.join(random.choices(string.printable, k=cls.KEY_SIZE)).strip("\n").strip("\r")
-
-    with open(kp_token, "x", encoding="utf-8", newline="\n") as f:
-      f.write(key_auth.kp_token)
-    with open(kp_key, "x", encoding="utf-8", newline="\n") as f:
-      f.write(key_auth.kp_key)
+    if kp_token.is_file():
+      key_auth.kp_token = kp_token.read_text(encoding="utf-8").strip("\n").strip("\r")
+      key_auth.kp_key = kp_key.read_text(encoding="utf-8").strip("\n").strip("\r")
+    else:
+      key_auth.kp_token = ''.join(random.choices(string.printable, k=cls.TOKEN_SIZE)).strip("\n").strip("\r")
+      with open(kp_token, "x", encoding="utf-8", newline="\n") as f:
+        f.write(key_auth.kp_token)
+      key_auth.kp_key = ''.join(random.choices(string.printable, k=cls.KEY_SIZE)).strip("\n").strip("\r")
+      with open(kp_key, "x", encoding="utf-8", newline="\n") as f:
+        f.write(key_auth.kp_key)
 
     return key_auth
 
