@@ -21,7 +21,13 @@ KEEPASS_DB_TOKEN: Path = Path.joinpath(xdg_state_home(), "trapper_keeper/secrets
 
 SPECIAL_BINARIES: str = "2b405bc0-8583-491c-a4af-81628388f2c4"
 
+@dataclass
+class KeeAuth:
+  kp_token: str = KEEPASS_DB_TOKEN
+  kp_key: str = KEEPASS_DB_KEY
 
+
+@dataclass
 class DbTypes(Enum):
   BOLT: str = "BoltDB"
   KP: str = "Keepass"
@@ -60,9 +66,6 @@ class DbUtils:
     if not kp_fp.is_file():
       # make the directory at least if the database does not exist
       kp_fp.parent.mkdir(mode=0o700, exist_ok=True, parents=True)
-    else:
-      # database exists
-      raise FileExistsError(f"{kp_fp.name} exists in path {kp_fp.parent}")
 
     # Token and key must exist in the target destinations ahead of time
     if not kp_token.is_file():

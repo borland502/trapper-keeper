@@ -1,67 +1,41 @@
 import os
 import random
 import string
+import tempfile
 import unittest
 from pathlib import Path
 
 from boltdb import BoltDB
 from boltdb.tx import Tx
-from boltdb.bucket import Bucket
-from boltdb.page import Page
 from pykeepass.group import Group
 from pykeepass.pykeepass import PyKeePass
 
-from trapper_keeper.util.db_utils import DbUtils, SPECIAL_BINARIES
-
-TEST_KEEPASS_DB_PATH: Path = Path('test_store.kdbx')
-TEST_KEEPASS_DB_TOKEN: Path = Path('test_token')
-TEST_KEEPASS_DB_KEY: Path = Path('test_key')
-TEST_BOLT_DB_PATH: Path = Path('chezmoistate.boltdb')
-TEST_PROP_DB_PATH: Path = Path('test_props.sqlite')
-
+from trapper_keeper.util.db_utils import DbUtils, SPECIAL_BINARIES, KeeAuth
+from trapper_keeper.util.keegen import Keegen
 
 class TestKeepassCase(unittest.TestCase):
 
   def __init__(self, methodName: str = "runTest"):
     super().__init__(methodName)
 
-  def setup_test_paths(self):
-    """
-    Sets up the paths for the test database and token files.
-    """
-
-    self.kp_token: Path = Path(f"test_resources/{TEST_KEEPASS_DB_TOKEN}")
-    self.kp_path: Path = Path(f"test_resources/{TEST_KEEPASS_DB_PATH}")
-    self.bp_path: Path = Path(f"test_resources/{TEST_BOLT_DB_PATH}")
-    self.kp_key: Path = Path(f"test_resources/{TEST_KEEPASS_DB_KEY}")
-    self.prop_path: Path = Path(f"./test_resources/{TEST_PROP_DB_PATH}")
-
   def setUp(self):
     """
     Sets up the test environment.
     """
-    self.setup_test_paths()
-    if self.kp_token.exists():
-      os.remove(self.kp_token)
-    if self.kp_path.exists():
-      os.remove(self.kp_path)
-    if self.prop_path.exists():
-      os.remove(self.prop_path)
-    if self.bp_path.exists():
-      os.remove(self.bp_path)
-    if self.kp_key.exists():
-      os.remove(self.kp_key)
-    with open("test_resources/test_token", "w") as f:
-      f.write(''.join(random.choices(string.printable, k=35)))
-    with open("test_resources/test_key", "w") as f:
-      f.write(''.join(random.choices(string.printable, k=180)))
+    with tempfile.TemporaryDirectory(delete=False) as tmpdir:
+      self.kp_key = Path(tmpdir, "key")
+      self.kp_token = Path(tmpdir, "token")
+      self.kp_db = Path(tmpdir, "kp.kdbx")
+      self.prop_path = Path(tmpdir, "sqlite.sqlite")
+      self.bolt_path = Path(tmpdir, "bolt.db")
+      self.kee_auth: KeeAuth = Keegen.gen_auth(kp_key=self.kp_key, kp_token=self.kp_token)
 
   def test_create_tk_store(self):
-    if not self.kp_path.exists():
-      DbUtils.create_tk_store(kp_fp=self.kp_path, kp_token=self.kp_token, kp_key=self.kp_key, kv_fp=self.prop_path)
+    if not self.kp_db.exists():
+      DbUtils.create_tk_store(kp_fp=self.kp_db, kp_token=self.kp_token, kp_key=self.kp_key, kv_fp=self.prop_path)
     self.assertTrue(self.kp_token.exists())
-    self.assertTrue(self.kp_path.exists())
-    with (PyKeePass(filename=self.kp_path, password=self.kp_token.read_text(encoding='utf-8'),
+    self.assertTrue(self.kp_db.exists())
+    with (PyKeePass(filename=self.kp_db, password=self.kp_token.read_text(encoding='utf-8'),
                     keyfile=self.kp_key)) as kp_db:
       group: Group = kp_db.find_groups(name=SPECIAL_BINARIES, first=True)
       self.assertIsNotNone(group)
@@ -70,7 +44,7 @@ class TestKeepassCase(unittest.TestCase):
       self.assertGreater(len(kp_db.attachments), 0)
 
   def test_chezmoi_bolt_db_rw(self):
-    db: BoltDB = BoltDB(filename=self.bp_path)
+    db: BoltDB = BoltDB(filename=self.bolt_path)
     tx: Tx = db.begin(writable=True)
     config_state = tx.create_bucket(b"configState")
     config_state.put(b"configState", b"1")
@@ -85,7 +59,7 @@ class TestKeepassCase(unittest.TestCase):
     tx.close()
 
 
-    bolt_db: BoltDB = DbUtils.load_boltdb_store(self.bp_path)
+    bolt_db: BoltDB = DbUtils.load_boltdb_store(self.bolt_path)
     self.assertIsNotNone(bolt_db)
     tx: Tx = bolt_db.begin(writable=False)
     self.assertIsNotNone(tx)
@@ -113,18 +87,13 @@ class TestKeepassCase(unittest.TestCase):
     """
     Tears down the test environment.
     """
-    self.setup_test_paths()
-    if self.kp_token.exists():
-      os.remove(self.kp_token)
-    if self.kp_path.exists():
-      os.remove(self.kp_path)
-    if self.prop_path.exists():
-      os.remove(self.prop_path)
-    if self.bp_path.exists():
-      os.remove(self.bp_path)
-    if self.kp_key.exists():
-      os.remove(self.kp_key)
-
+    dir_parent: Path = self.kp_key.parent
+    self.kp_key.unlink(missing_ok=True)
+    self.kp_token.unlink(missing_ok=True)
+    self.prop_path.unlink(missing_ok=True)
+    self.bolt_path.unlink(missing_ok=True)
+    self.kp_db.unlink(missing_ok=True)
+    dir_parent.rmdir()
 
 if __name__ == '__main__':
   unittest.main()
