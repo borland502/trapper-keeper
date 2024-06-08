@@ -1,0 +1,74 @@
+version: "3"
+
+vars:
+  POETRY: poetry
+  PYTHON: python
+  PYTEST: pytest
+  PIP: pip
+  # The prefix to use when running dev commands
+  RUN_PREFIX: "{{.POETRY}} run"
+  PYTEST_PREFIX: "{{.RUN_PREFIX}} {{.PYTEST}}"
+  PIP_PREFIX: "{{.RUN_PREFIX}} {{.PIP}}"
+  BUILD_ALL_PREFIX: "{{.POETRY}} build-project"
+  PYTHON_PROJ_SRC: "./src/**/*.py"
+  PYTHON_DIST: "dist"
+  PYPROJECTS_VENV: "./venv/**/trapper_keeper/*"
+  # The python to use for running in the venv
+  VENV_PYTHON: "{{.RUN_PREFIX}} python"
+  RUN_MODULE_PREFIX: "{{.RUN_PREFIX}} {{.PYTHON}} -m"
+
+tasks:
+  default:
+    cmds:
+      - |
+        command -v brew >/dev/null || { echo "brew is mandatory for this to work, please install it"; exit 1; }
+        command -v gum >/dev/null|| brew install gum
+
+        selected=$(task --list-all | grep -v "task: Available" | grep -v "default:" | gum filter --indicator="->" --placeholder="Type to search for a task...")
+        echo "$selected" | awk '{sub(/:$/, "", $2); print $2}' | xargs task
+
+  build:clean:
+    desc: Clean build directories
+    cmds:
+      - "{{.PIP_PREFIX}} uninstall {{.PYTHON_DIST}}/*.whl -y"
+      - "rm -rf {{.PYTHON_DIST}}"
+
+  build:all:
+    desc: Build all pyprojects and the shared libraries for them
+    cmds:
+      - "{{.BUILD_ALL_PREFIX}}"
+
+  test:all:
+    desc: Run all tests
+    cmds:
+      - "{{.PYTEST_PREFIX}}"
+
+  tools:ruff:check:
+    desc: Run ruff
+    cmds:
+      - "{{.RUN_PREFIX}} ruff check {{.PYTHON_PROJ_SRC}} {{.PYTHON_SHARED_SRC}} --config pyproject.toml --fix"
+
+  tools:ruff:format:
+    desc: Format code
+    cmds:
+      - "{{.RUN_PREFIX}} ruff format {{.PYTHON_PROJ_SRC}} {{.PYTHON_SHARED_SRC}} --config pyproject.toml --line-length 128 --target-version py311"
+
+  install:
+    desc: Install all pyprojects to local .venv
+    deps:
+      - task: build:all
+    cmds:
+      - "{{.PIP_PREFIX}} install {{.PYTHON_DIST}}/*.whl --force-reinstall --no-deps"
+      - task: build:clean
+
+  tools:bandit:
+    desc: Run bandit
+    cmds:
+      - "{{.RUN_PREFIX}} bandit -c pyproject.toml -r {{.PYTHON_PROJ_SRC}} {{.PYTHON_SHARED_SRC}}"
+
+  lint:
+    desc: Runs linters
+    deps:
+      - task: tools:bandit
+      - task: tools:ruff:check
+      - task: tools:ruff:format

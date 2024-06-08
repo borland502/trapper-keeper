@@ -1,113 +1,106 @@
 [tool.poetry]
-name = "trapper_keeper"
-version = "0.2.2"
-description = "Python wrapper around KeePassXC to store and retrieve secrets"
 authors = ["Jeremy Hettenhouser <jhettenh@gmail.com>"]
+description = "Python wrapper around KeePassXC to store and retrieve secrets"
+name = "trapper_keeper"
+packages = [{ include = "*", from = "src" }]
 readme = "README.md"
-packages = [
-    { include = "*", from = "src" },
-]
+version = "0.2.3"
 [tool.ruff]
-    indent-width = 2
-    line-length = 128
-    target-version = "py311"
+indent-width = 2
+line-length = 128
+target-version = "py311"
 
-    exclude = [
-        ".eggs",
-        ".git",
-        ".ipynb_checkpoints",
-        ".mypy_cache",
-        ".pytest_cache",
-        ".pytype",
-        ".ruff_cache",
-        ".venv",
-        "tests",
-        "__pypackages__",
-        "__pycache__",
-        "build",
-        "dist",
-    ]
+exclude = [".eggs",
+  ".git",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".venv",
+  "tests",
+  "__pypackages__",
+  "__pycache__",
+  "build",
+  "dist",
+]
 
-    lint.ignore = [
-        "D203",
-        "D213",
-        "E501",
-        "PGH003",
-        "RET504",
-        "S101",
-        "S307",
-        "D205",
-        "ISC001",
-        "E111",
-    ]
-    lint.ignore-init-module-imports = true
-    lint.select = [
-        "A",
-        "ASYNC",
-        "B",
-        "C4",
-        "C90",
-        "D",
-        "DTZ",
-        "E",
-        "F",
-        "FLY",
-        "I",
-        "ISC",
-        "LOG",
-        "N",
-        "NPY",
-        "PERF",
-        "PGH",
-        "PIE",
-        "PL",
-        "PT",
-        "Q",
-        "RET",
-        "RUF",
-        "RSE",
-        "SIM",
-        "TID",
-        "UP",
-        "W",
-        "YTT",
-    ]
-    lint.unfixable = ["F401", "F841"]
+lint.ignore = ["D203",
+  "D213",
+  "E501",
+  "PGH003",
+  "RET504",
+  "S101",
+  "S307",
+  "D205",
+  "ISC001",
+  "E111",
+]
+lint.ignore-init-module-imports = true
+lint.select = ["A",
+  "ASYNC",
+  "B",
+  "C4",
+  "C90",
+  "D",
+  "DTZ",
+  "E",
+  "F",
+  "FLY",
+  "I",
+  "ISC",
+  "LOG",
+  "N",
+  "NPY",
+  "PERF",
+  "PGH",
+  "PIE",
+  "PL",
+  "PT",
+  "Q",
+  "RET",
+  "RUF",
+  "RSE",
+  "SIM",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+lint.unfixable = ["F401", "F841"]
 
 [tool.ruff.format]
-    line-ending = "lf"
-
+line-ending = "lf"
 
 [tool.ruff.lint.pydocstyle]
-    convention = "google"
+convention = "google"
 
 [tool.ruff.lint.isort]
-    section-order = [
-        "future",
-        "standard-library",
-        "third-party",
-        "first-party",
-        "tests",
-        "local-folder",
-    ]
-
-[tool.ruff.lint.isort.sections]
-    "tests" = ["src","tests"]
+section-order = ["future",
+  "standard-library",
+  "third-party",
+  "first-party",
+  "tests",
+  "local-folder",
+]
 
 [tool.poetry.dependencies]
-python = "^3.12"
-pykeepass = "^4.0.7.post1"
-xdg-base-dirs = "^6.0.1"
+bandit = "^1.7.8"
 pydantic = "^2.7.1"
-sqlite-utils = "^3.36"
+pykeepass = "^4.0.7.post1"
+python = "^3.12"
 pyyaml = "^6.0.1"
 sqlite-dump = "^0.1.1"
+sqlite-utils = "^3.36"
+toml = "^0.10.2"
+xdg-base-dirs = "^6.0.1"
+sshkey-tools = "^0.11.1"
+boltdb = "^0.0.2"
 
 [tool.poetry.group.dev.dependencies]
+ruff = "^0.4.7"
 setuptools = "^70.0.0"
-pytest = "^8.2.1"
-ruff = "^0.4.5"
 
 [build-system]
-requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
