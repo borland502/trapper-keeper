@@ -21,11 +21,6 @@ KEEPASS_DB_TOKEN: Path = Path.joinpath(xdg_state_home(), "trapper_keeper/secrets
 
 SPECIAL_BINARIES: str = "2b405bc0-8583-491c-a4af-81628388f2c4"
 
-@dataclass
-class KeeAuth:
-  kp_token: str = KEEPASS_DB_TOKEN
-  kp_key: str = KEEPASS_DB_KEY
-
 
 @dataclass
 class DbTypes(Enum):

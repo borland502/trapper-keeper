@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from trapper_keeper.util.keegen import Keegen, KeeAuth
+from trapper_keeper.util import keegen
+from trapper_keeper.util.keegen import KeeAuth
 
 
 class TestGenAuth(unittest.TestCase):
@@ -14,33 +15,27 @@ class TestGenAuth(unittest.TestCase):
     with tempfile.TemporaryDirectory(delete=False) as tmpdir:
       self.kp_key = Path(tmpdir, "key")
       self.kp_token = Path(tmpdir, "token")
-      self.kee_auth: KeeAuth = Keegen.gen_auth(kp_key=self.kp_key, kp_token=self.kp_token)
+      self.kee_auth: KeeAuth = KeeAuth()
+      try:
+        self.kee_auth.save()
+        self.fail("FileExistError not raised")
+      except FileExistsError:
+        pass
+
+      self.kee_auth_existing: KeeAuth = KeeAuth()
+      self.kee_auth_existing.kp_key = self.kp_key
+      self.kee_auth_existing.kp_token = self.kp_token
+      self.kee_auth_existing.save()
 
   def test_gen_auth(self):
-    self.assertIsNotNone(self.kee_auth)
-    self.assertIsNotNone(self.kee_auth.kp_key)
-    self.assertIsNotNone(self.kee_auth.kp_token)
-
-    self.assertGreaterEqual(a=len(self.kee_auth.kp_token), b=Keegen.TOKEN_SIZE,
-                            msg=f"Token is less than {Keegen.TOKEN_SIZE} bytes")
-    self.assertGreaterEqual(a=len(self.kee_auth.kp_key), b=Keegen.KEY_SIZE,
-                            msg=f"Key is less than {Keegen.KEY_SIZE} bytes")
+    self.assertIsNotNone(self.kee_auth_existing)
+    self.assertGreaterEqual(a=len(self.kee_auth_existing.kp_key[1]), b=keegen.KEY_SIZE,
+                            msg=f"Key is less than {keegen.KEY_SIZE} bytes")
 
   def test_file_equals(self):
-    with open(self.kp_key, encoding="utf-8", mode="r", newline="\n") as f:
-      self.assertEqual(first=f.read(), second=self.kee_auth.kp_key)
+    self.assertEqual(first=self.kp_token.read_text(encoding="utf-8"), second=self.kee_auth_existing.kp_token[1])
+    self.assertEqual(first=self.kp_key.read_text(encoding="utf-8"), second=self.kee_auth_existing.kp_key[1])
 
-    with open(self.kp_token, encoding="utf-8", mode="r", newline="\n") as f:
-      self.assertEqual(first=f.read(), second=self.kee_auth.kp_token)
-
-  def test_existing_secrets(self):
-    kee_auth: KeeAuth = Keegen.gen_auth(kp_key=self.kp_key, kp_token=self.kp_token)
-
-    with open(self.kp_key, encoding="utf-8", mode="r") as f:
-      self.assertEqual(first=f.read(), second=kee_auth.kp_key)
-
-    with open(self.kp_token, encoding="utf-8", mode="r") as f:
-      self.assertEqual(first=f.read(), second=kee_auth.kp_token)
 
   def tearDown(self):
     dir_folder:Path = self.kp_key.parent
