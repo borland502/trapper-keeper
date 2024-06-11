@@ -1,6 +1,7 @@
 version: "3"
 
 vars:
+  PROJECT_NAME: "trapper_keeper"
   POETRY: poetry
   PYTHON: python
   PYTEST: pytest
@@ -12,10 +13,11 @@ vars:
   BUILD_ALL_PREFIX: "{{.POETRY}} build-project"
   PYTHON_PROJ_SRC: "./src/**/*.py"
   PYTHON_DIST: "dist"
-  PYPROJECTS_VENV: "./venv/**/trapper_keeper/*"
+  PYPROJECTS_VENV: "./venv/**/{{.PROJECT_NAME}}/*"
   # The python to use for running in the venv
   VENV_PYTHON: "{{.RUN_PREFIX}} python"
   RUN_MODULE_PREFIX: "{{.RUN_PREFIX}} {{.PYTHON}} -m"
+  RUN_UNITTEST_PREFIX: "{{.RUN_MODULE_PREFIX}} unittest discover ."
 
 tasks:
   default:
@@ -28,6 +30,9 @@ tasks:
         echo "$selected" | awk '{sub(/:$/, "", $2); print $2}' | xargs task
 
   build:clean:
+    preconditions:
+      - sh: "find {{.PYTHON_DIST}} -name '*.whl' -print -quit || exit 1"
+        msg: "Nothing to clean...skipping"
     desc: Clean build directories
     cmds:
       - "{{.PIP_PREFIX}} uninstall {{.PYTHON_DIST}}/*.whl -y"
@@ -39,9 +44,12 @@ tasks:
       - "{{.BUILD_ALL_PREFIX}}"
 
   test:all:
+    deps:
+      - task: build:all
+      - task: tools:ruff:format
     desc: Run all tests
     cmds:
-      - "{{.PYTEST_PREFIX}}"
+      - "{{.RUN_UNITTEST_PREFIX}}"
 
   tools:ruff:check:
     desc: Run ruff

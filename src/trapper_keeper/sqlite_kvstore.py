@@ -1,4 +1,5 @@
 """https://stackoverflow.com/questions/47237807/use-sqlite-as-a-keyvalue-store"""
+
 import contextlib
 import sqlite3
 from pathlib import Path
