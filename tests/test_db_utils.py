@@ -1,6 +1,3 @@
-import os
-import random
-import string
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,8 +7,9 @@ from boltdb.tx import Tx
 from pykeepass.group import Group
 from pykeepass.pykeepass import PyKeePass
 
-from trapper_keeper.util.db_utils import DbUtils, SPECIAL_BINARIES, KeeAuth
-from trapper_keeper.util.keegen import Keegen
+from trapper_keeper.util.db_utils import DbUtils, SPECIAL_BINARIES
+from trapper_keeper.util.keegen import KeeAuth
+
 
 class TestKeepassCase(unittest.TestCase):
 
@@ -28,15 +26,17 @@ class TestKeepassCase(unittest.TestCase):
       self.kp_db = Path(tmpdir, "kp.kdbx")
       self.prop_path = Path(tmpdir, "sqlite.sqlite")
       self.bolt_path = Path(tmpdir, "bolt.db")
-      self.kee_auth: KeeAuth = Keegen.gen_auth(kp_key=self.kp_key, kp_token=self.kp_token)
+      self.kee_auth: KeeAuth = KeeAuth()
+      self.kee_auth.kp_key = self.kp_key
+      self.kee_auth.kp_token = self.kp_token
+      self.kee_auth.save()
 
   def test_create_tk_store(self):
     if not self.kp_db.exists():
       DbUtils.create_tk_store(kp_fp=self.kp_db, kp_token=self.kp_token, kp_key=self.kp_key, kv_fp=self.prop_path)
     self.assertTrue(self.kp_token.exists())
     self.assertTrue(self.kp_db.exists())
-    with (PyKeePass(filename=self.kp_db, password=self.kp_token.read_text(encoding='utf-8'),
-                    keyfile=self.kp_key)) as kp_db:
+    with (PyKeePass(filename=self.kp_db, password=self.kp_token.read_text(encoding='utf-8'), keyfile=self.kp_key)) as kp_db:
       group: Group = kp_db.find_groups(name=SPECIAL_BINARIES, first=True)
       self.assertIsNotNone(group)
       self.assertEqual(SPECIAL_BINARIES, group.name)
@@ -57,7 +57,6 @@ class TestKeepassCase(unittest.TestCase):
     tx.write()
     tx.commit()
     tx.close()
-
 
     bolt_db: BoltDB = DbUtils.load_boltdb_store(self.bolt_path)
     self.assertIsNotNone(bolt_db)
@@ -81,8 +80,6 @@ class TestKeepassCase(unittest.TestCase):
     self.assertIsNotNone(script_state)
     tx.close()
 
-
-
   def tearDown(self):
     """
     Tears down the test environment.
@@ -94,6 +91,7 @@ class TestKeepassCase(unittest.TestCase):
     self.bolt_path.unlink(missing_ok=True)
     self.kp_db.unlink(missing_ok=True)
     dir_parent.rmdir()
+
 
 if __name__ == '__main__':
   unittest.main()
