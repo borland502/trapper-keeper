@@ -110,7 +110,7 @@ class DbUtils:
 
   @staticmethod
   def save_tk_db(kp_stream: BytesIO, filename: str = KEEPASS_DB_PATH):
-    with open(file=filename, encoding="utf-8", mode="w+b") as kpf:
+    with open(file=filename, mode="w+b") as kpf:
       kpf.write(kp_stream.getvalue())
 
   @staticmethod
