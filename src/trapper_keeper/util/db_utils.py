@@ -3,6 +3,7 @@
 import contextlib
 from dataclasses import dataclass
 from enum import Enum
+from io import StringIO, BytesIO
 from pathlib import Path
 
 from boltdb import BoltDB
@@ -33,9 +34,9 @@ class DbUtils:
 
   @classmethod
   def create_tk_store(cls, kp_fp: Path, kp_token: Path, kp_key: Path, kv_fp: Path | None = None) -> None:
-    kp_db: PyKeePass = cls._create_kp_db(kp_fp=kp_fp, kp_token=kp_token, kp_key=kp_key)
-    group: Group = cls._create_group(kp_db)
-    cls._create_kv_store(kp_db, group, kv_fp)
+    kp_db: PyKeePass = cls.create_kp_db(kp_fp=kp_fp, kp_token=kp_token, kp_key=kp_key)
+    group: Group = cls.create_group(kp_db)
+    cls.create_kv_store(kp_db, group, kv_fp)
     kp_db.save()
     # TODO: Validation on creation
 
@@ -56,7 +57,7 @@ class DbUtils:
           attachment_update.write(attachment.binary)
 
   @staticmethod
-  def _create_kp_db(kp_fp: Path, kp_token: Path, kp_key: Path | None = None) -> PyKeePass:
+  def create_kp_db(kp_fp: Path, kp_token: Path, kp_key: Path | None = None) -> PyKeePass:
     """Create a new keepass vault in the KEEPASS_DB_PATH, with the KEEPASS_DB_KEY, and KEEPASS_DB_TOKEN."""
     if not kp_fp.is_file():
       # make the directory at least if the database does not exist
@@ -76,7 +77,7 @@ class DbUtils:
     return create_database(kp_fp, password=kp_token.read_text("utf-8").strip("\n"), keyfile=kp_key)
 
   @staticmethod
-  def _create_group(kp_db: PyKeePass) -> Group:
+  def create_group(kp_db: PyKeePass) -> Group:
     # Keepass database params are always expected, so these pertain to an embedded attachment
     group = kp_db.find_groups(name=SPECIAL_BINARIES, first=True)
     if group is None or len(group) == 0:
@@ -91,7 +92,7 @@ class DbUtils:
       raise AttributeError(f"Special binaries ({SPECIAL_BINARIES}) group already exists")
 
   @staticmethod
-  def _create_kv_store(kp_db: PyKeePass, group: Group, kv_fp: Path = KV_STORE, prop_table_name: str = "Properties") -> KeyValueStore:
+  def create_kv_store(kp_db: PyKeePass, group: Group, kv_fp: Path = KV_STORE, prop_table_name: str = "Properties") -> KeyValueStore:
     properties_entry: Entry = kp_db.add_entry(destination_group=group, title=prop_table_name, username="", password="")
 
     """Create the sqlite database with a Key/Value store that is closed immediately after it exports the init sql"""
@@ -106,6 +107,19 @@ class DbUtils:
 
     kp_db.save()
     return kv_db
+
+  @staticmethod
+  def save_tk_db(kp_stream: BytesIO, filename: str):
+    with open(file=filename, encoding="utf-8", mode="w+b") as kpf:
+      kpf.write(kp_stream.getvalue())
+
+  @staticmethod
+  def export_tk(kp_db: PyKeePass):
+    raise NotImplementedError
+
+  @staticmethod
+  def create_bolt_store():
+    raise NotImplementedError
 
   @staticmethod
   def load_boltdb_store(bp_fp: Path) -> BoltDB:
