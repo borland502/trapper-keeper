@@ -38,14 +38,14 @@ tasks:
       - "{{.PIP_PREFIX}} uninstall {{.PYTHON_DIST}}/*.whl -y"
       - "rm -rf {{.PYTHON_DIST}}"
 
-  build:all:
+  build:
     desc: Build all pyprojects and the shared libraries for them
     cmds:
       - "{{.BUILD_ALL_PREFIX}}"
 
-  test:all:
+  test:
     deps:
-      - task: build:all
+      - task: build
       - task: tools:ruff:format
     desc: Run all tests
     cmds:
@@ -64,7 +64,7 @@ tasks:
   install:
     desc: Install all pyprojects to local .venv
     deps:
-      - task: build:all
+      - task: build
     cmds:
       - "{{.PIP_PREFIX}} install {{.PYTHON_DIST}}/*.whl --force-reinstall --no-deps"
       - task: build:clean
