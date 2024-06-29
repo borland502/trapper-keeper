@@ -1,3 +1,5 @@
+## Archived:  Folding all initial python experiments into dasbootstrap
+
 # Trapper Keeper
 ## Overview
 Trapper Keeper aims to be a thin wrapper over KeePassXC using PyKeepass for the niche goal of packing various
